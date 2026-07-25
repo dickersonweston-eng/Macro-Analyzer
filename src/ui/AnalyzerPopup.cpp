@@ -1,5 +1,6 @@
 #include "AnalyzerPopup.hpp"
 #include "../parsers/Gdr2Parser.hpp"
+#include "../parsers/JsonParser.hpp"
 #include <fmt/format.h>
 
 CCNode* AnalyzerPopup::createMetricCard(std::string const& label, std::string const& value, ccColor3B color, float delay) {
@@ -156,7 +157,10 @@ void AnalyzerPopup::onOpenFile(CCObject* sender) {
             self->runAction(CCSequence::create(
                 CCDelayTime::create(0.4f),
                 CallFuncExt::create([self, filePath = path.value()]() {
-                    auto parseResult = Gdr2Parser::parse(filePath);
+                    auto ext = filePath.extension().string();
+                    auto parseResult = (ext == ".json")
+                    ? JsonParser::parse(filePath)
+                    : Gdr2Parser::parse(filePath);
                     if (!parseResult) {
                         log::error("Parse Failed: {}", parseResult.unwrapErr());
                         self->hideLoading();

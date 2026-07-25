@@ -1,3 +1,6 @@
+# v1.2.0
+- Added .json File Support
+
 # v1.1.2
 - Increased The Parsing Loading Screen For Better Visual Feedback
 
