@@ -7,10 +7,8 @@ using namespace geode::prelude;
 class $modify(MyCreatorLayer, CreatorLayer) {
     bool init() {
         if (!CreatorLayer::init()) return false;
-        log::info("MacroAnalyzer: LevelSearchLayer init called!");
 
         auto winSize = CCDirector::sharedDirector()->getWinSize();
-
         auto menu = CCMenu::create();
         auto icon = CCSprite::createWithSpriteFrameName("GJ_statsBtn_001.png");
         icon->setScale(0.8f);
