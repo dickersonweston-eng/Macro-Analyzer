@@ -2,7 +2,6 @@
     "geode": "5.7.1",
     "gd": {
         "win": "2.2081",
-        "android": "2.2081",
         "mac": "2.2081"
     },
     "version": "v1.0.0",
@@ -10,6 +9,8 @@
     "name": "Macro Analyzer",
     "developer": "KreonGD",
     "description": "Analyze and convert GD macro files",
-    "links": {},
+    "links": {
+        "source": "https://github.com/dickersonweston-eng/Macro-Analyzer"
+    },
     "dependencies": {}
 }
