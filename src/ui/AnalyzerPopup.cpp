@@ -165,10 +165,17 @@ void AnalyzerPopup::onOpenFile(CCObject* sender) {
                     auto replay = parseResult.unwrap();
                     log::info("Parsed Replay: Author={}, Level={}, Frames={}, Duration={}ms",
                         replay.author, replay.levelName, replay.frames.size(), replay.duration);
-                        self->populateStats(replay);
-                        self->hideLoading();
-                    }),
-                    nullptr));
+                        self->runAction(CCSequence::create(
+                            CCDelayTime::create(2.5f),
+                            CallFuncExt::create([self, replay]() {
+                                self->populateStats(replay);
+                                self->hideLoading();
+                            }),
+                        nullptr
+                    ));
+                }),
+                nullptr
+            ));
         }
     );
 }
