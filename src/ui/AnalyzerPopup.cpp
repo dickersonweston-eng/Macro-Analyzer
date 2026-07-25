@@ -2,8 +2,8 @@
 #include "../parsers/Gdr2Parser.hpp"
 #include <fmt/format.h>
 
-CCNode* AnalyzerPopup::createMetricCard(std::string const& label, std::string const& value, ccColor3B color) {
-    auto card = CCNode::create();
+CCNode* AnalyzerPopup::createMetricCard(std::string const& label, std::string const& value, ccColor3B color, float delay) {
+    auto card = CCNodeRGBA::create();
     card->setContentSize({108.f, 46.f});
 
     auto panel = NineSlice::create("GJ_square01.png");
@@ -23,6 +23,19 @@ CCNode* AnalyzerPopup::createMetricCard(std::string const& label, std::string co
     valueText->setAnchorPoint({0.f, 1.f});
     valueText->setPosition(10.f, card->getContentSize().height - 24.f);
     card->addChild(valueText);
+
+    card->setScale(0.6f);
+    card->setOpacity(0);
+    card->runAction(
+        CCSequence::create(
+            CCDelayTime::create(0.f), // Placeholder, Set By Caller
+            CCSpawn::create(
+                CCEaseBackOut::create(CCScaleTo::create(0.25f, 1.0f)),
+                CCFadeTo::create(0.2f, 255),
+                nullptr),
+                nullptr
+            )
+        );
 
     return card;
 }
@@ -55,10 +68,20 @@ void AnalyzerPopup::populateStats(Replay const& replay) {
     for (size_t i = 0; i < metrics.size(); i++) {
         int col = i % cols;
         int row = i / cols;
-        auto card = createMetricCard(metrics[i].label, metrics[i].value, metrics[i].color);
+        auto card = createMetricCard(metrics[i].label, metrics[i].value, metrics[i].color, i * 0.03f);
         card->setPosition(startX + col * (cardW + gapX), startY - row * (cardH + gapY));
         m_statsContainer->addChild(card);
     }
+}
+
+void AnalyzerPopup::showLoading() {
+    m_statsContainer->setVisible(false);
+    m_loadingContainer->setVisible(true);
+}
+
+void AnalyzerPopup::hideLoading() {
+    m_loadingContainer->setVisible(false);
+    m_statsContainer->setVisible(true);
 }
 
 bool AnalyzerPopup::init(float width, float height) {
@@ -77,6 +100,22 @@ bool AnalyzerPopup::init(float width, float height) {
     m_statsContainer = CCNode::create();
     m_statsContainer->setPosition(0.f, 0.f);
     m_mainLayer->addChild(m_statsContainer);
+
+    m_loadingContainer = CCNode::create();
+    m_loadingContainer->setPosition(m_mainLayer->getContentSize().width / 2.f, m_mainLayer->getContentSize().height / 2.f);
+    m_loadingContainer->setVisible(false);
+    m_mainLayer->addChild(m_loadingContainer);
+
+    auto spinner = CCSprite::create("loadingCircle.png");
+    spinner->setScale(0.8f);
+    spinner->setPosition({0.f, 15.f});
+    spinner->runAction(CCRepeatForever::create(CCRotateBy::create(1.f, 360.f)));
+    m_loadingContainer->addChild(spinner);
+
+    auto loadingLabel = CCLabelBMFont::create("Parsing File...", "goldFont.fnt");
+    loadingLabel->setScale(0.6f);
+    loadingLabel->setPosition(0.f, -25.f);
+    m_loadingContainer->addChild(loadingLabel);
 
     return true;
 }
@@ -111,17 +150,25 @@ void AnalyzerPopup::onOpenFile(CCObject* sender) {
                 log::info("File pick cancelled");
                 return;
             }
-            log::info("Picked file: {}", path.value().string());
+            log::info("Picked File: {}", path.value().string());
+            self->showLoading();
 
-            auto parseResult = Gdr2Parser::parse(path.value());
-            if (!parseResult) {
-                log::error("Parse failed: {}", parseResult.unwrapErr());
-                return;
-            }
-            auto replay = parseResult.unwrap();
-            log::info("Parsed replay: author={}, level={}, frames={}, duration={}ms",
-                replay.author, replay.levelName, replay.frames.size(), replay.duration);
-            self->populateStats(replay);
+            self->runAction(CCSequence::create(
+                CCDelayTime::create(0.4f),
+                CallFuncExt::create([self, filePath = path.value()]() {
+                    auto parseResult = Gdr2Parser::parse(filePath);
+                    if (!parseResult) {
+                        log::error("Parse Failed: {}", parseResult.unwrapErr());
+                        self->hideLoading();
+                        return;
+                    }
+                    auto replay = parseResult.unwrap();
+                    log::info("Parsed Replay: Author={}, Level={}, Frames={}, Duration={}ms",
+                        replay.author, replay.levelName, replay.frames.size(), replay.duration);
+                        self->populateStats(replay);
+                        self->hideLoading();
+                    }),
+                    nullptr));
         }
     );
 }

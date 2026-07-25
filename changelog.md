@@ -1,3 +1,7 @@
+# v1.1.1
+- Added Animations To Stat Cards
+- Added File Parsing "Loading Screen"
+
 # v1.1.0
 - Complete UI Redesign
 
