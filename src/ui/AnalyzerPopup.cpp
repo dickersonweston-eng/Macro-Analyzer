@@ -57,7 +57,7 @@ void AnalyzerPopup::populateStats(Replay const& replay) {
         { "LDM", replay.ldm ? "Yes" : "No", {255, 140, 255} },
         { "Level ID", std::to_string(replay.levelId), {140, 255, 140} },
         { "Level", replay.levelName, {140, 255, 140} },
-        { "Format", "GDR2", {140, 255, 140} },
+        { "Format", replay.fileFormat == ReplayFileFormat::Json ? "JSON" : "GDR2", {140, 255, 140} },
     };
 
     int cols = 4;
@@ -76,6 +76,7 @@ void AnalyzerPopup::populateStats(Replay const& replay) {
 }
 
 void AnalyzerPopup::showLoading() {
+    m_errorLabel->setVisible(false);
     m_statsContainer->setVisible(false);
     m_loadingContainer->setVisible(true);
 }
@@ -83,6 +84,13 @@ void AnalyzerPopup::showLoading() {
 void AnalyzerPopup::hideLoading() {
     m_loadingContainer->setVisible(false);
     m_statsContainer->setVisible(true);
+}
+
+void AnalyzerPopup::showError(std::string const& message) {
+    m_statsContainer->setVisible(false);
+    m_loadingContainer->setVisible(false);
+    m_errorLabel->setString(message.c_str());
+    m_errorLabel->setVisible(true);
 }
 
 bool AnalyzerPopup::init(float width, float height) {
@@ -117,6 +125,12 @@ bool AnalyzerPopup::init(float width, float height) {
     loadingLabel->setScale(0.6f);
     loadingLabel->setPosition(0.f, -25.f);
     m_loadingContainer->addChild(loadingLabel);
+
+    m_errorLabel = CCLabelBMFont::create("", "chatFont.fnt");
+    m_errorLabel->setPosition(m_mainLayer->getContentSize().width / 2.f, m_mainLayer->getContentSize().height / 2.f);
+    m_errorLabel->setColor({255, 90, 90});
+    m_errorLabel->setVisible(false);
+    m_mainLayer->addChild(m_errorLabel);
 
     return true;
 }
@@ -163,7 +177,7 @@ void AnalyzerPopup::onOpenFile(CCObject* sender) {
                     : Gdr2Parser::parse(filePath);
                     if (!parseResult) {
                         log::error("Parse Failed: {}", parseResult.unwrapErr());
-                        self->hideLoading();
+                        self->showError("Failed To Parse File");
                         return;
                     }
                     auto replay = parseResult.unwrap();

@@ -1,3 +1,7 @@
+# v1.2.1
+- Added A Visible Error Message When A File Fails To Parse
+- Fixed Format Showing Wrong Information
+
 # v1.2.0
 - Added .json File Support
 
