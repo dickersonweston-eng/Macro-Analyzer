@@ -1,7 +1,7 @@
 #pragma once
 #include <Geode/Result.hpp>
 #include <filesystem>
-#include "../Replay.hpp"
+#include "../../Replay.hpp"
 
 using namespace geode;
 

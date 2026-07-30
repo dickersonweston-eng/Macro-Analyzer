@@ -1,3 +1,8 @@
+# v1.3.0
+- Added Support For .gdr Files
+- Fixed Replay Showing No Author
+- Fixed Card Overflow
+
 # v1.2.1
 - Added A Visible Error Message When A File Fails To Parse
 - Fixed Format Showing Wrong Information

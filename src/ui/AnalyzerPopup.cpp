@@ -1,6 +1,7 @@
 #include "AnalyzerPopup.hpp"
-#include "../parsers/Gdr2Parser.hpp"
-#include "../parsers/JsonParser.hpp"
+#include "../parsers/Gdr2/Gdr2Parser.hpp"
+#include "../parsers/Json/JsonParser.hpp"
+#include "../parsers/Gdr/GdrParser.hpp"
 #include <fmt/format.h>
 
 CCNode* AnalyzerPopup::createMetricCard(std::string const& label, std::string const& value, ccColor3B color, float delay) {
@@ -19,7 +20,7 @@ CCNode* AnalyzerPopup::createMetricCard(std::string const& label, std::string co
     card->addChild(labelText);
 
     auto valueText = CCLabelBMFont::create(value.c_str(), "chatFont.fnt");
-    valueText->setScale(0.5f);
+    valueText->limitLabelWidth(88.f, 0.5f, 0.25f);
     valueText->setColor(color);
     valueText->setAnchorPoint({0.f, 1.f});
     valueText->setPosition(10.f, card->getContentSize().height - 24.f);
@@ -57,7 +58,11 @@ void AnalyzerPopup::populateStats(Replay const& replay) {
         { "LDM", replay.ldm ? "Yes" : "No", {255, 140, 255} },
         { "Level ID", std::to_string(replay.levelId), {140, 255, 140} },
         { "Level", replay.levelName, {140, 255, 140} },
-        { "Format", replay.fileFormat == ReplayFileFormat::Json ? "JSON" : "GDR2", {140, 255, 140} },
+        { "Format", [&]() -> std::string {
+            if (replay.fileFormat == ReplayFileFormat::Json) return "JSON";
+            if (replay.fileFormat == ReplayFileFormat::Gdr) return "GDR";
+            return "GDR2";
+        }(), {140, 255, 140} },
     };
 
     int cols = 4;
@@ -172,9 +177,11 @@ void AnalyzerPopup::onOpenFile(CCObject* sender) {
                 CCDelayTime::create(0.4f),
                 CallFuncExt::create([self, filePath = path.value()]() {
                     auto ext = filePath.extension().string();
-                    auto parseResult = (ext == ".json")
-                    ? JsonParser::parse(filePath)
-                    : Gdr2Parser::parse(filePath);
+                    Result<Replay> parseResult = [&]() {
+                        if (ext == ".json") return JsonParser::parse(filePath);
+                        if (ext == ".gdr") return GdrParser::parse(filePath);
+                        return Gdr2Parser::parse(filePath);
+                    }();
                     if (!parseResult) {
                         log::error("Parse Failed: {}", parseResult.unwrapErr());
                         self->showError("Failed To Parse File");
