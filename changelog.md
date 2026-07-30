@@ -1,3 +1,6 @@
+# v1.3.1
+- Replaced Deaths Stat Card With Seed
+
 # v1.3.0
 - Added Support For .gdr Files
 - Fixed Replay Showing No Author

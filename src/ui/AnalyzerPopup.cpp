@@ -53,7 +53,7 @@ void AnalyzerPopup::populateStats(Replay const& replay) {
         { "Framerate", fmt::format("{} fps", (int)replay.frameRate), {120, 230, 255} },
         { "Inputs", std::to_string(replay.frames.size()), {140, 255, 140} },
         { "Coins", std::to_string(replay.coins), {140, 255, 140} },
-        { "Deaths", std::to_string(replay.deaths.size()), {140, 255, 140} },
+        { "Seed", std::to_string(replay.seed), {140, 255, 140} },
         { "Mode", replay.platformer ? "Platformer" : "Classic", {255, 140, 255} },
         { "LDM", replay.ldm ? "Yes" : "No", {255, 140, 255} },
         { "Level ID", std::to_string(replay.levelId), {140, 255, 140} },
