@@ -1,3 +1,8 @@
+# v1.4.0
+- Added Analysis Tab With Input Density
+- Redesigned UI
+- Redesigned Animations
+
 # v1.3.1
 - Replaced Deaths Stat Card With Seed
 

@@ -4,7 +4,7 @@
         "win": "2.2081",
         "mac": "2.2081"
     },
-    "version": "v1.3.1",
+    "version": "v1.4.0",
     "id": "kreongd.macroanalyzer",
     "name": "Macro Analyzer",
     "developer": "KreonGD",
@@ -12,5 +12,9 @@
     "links": {
         "source": "https://github.com/dickersonweston-eng/Macro-Analyzer"
     },
-    "dependencies": {}
+    "resources": {
+        "spritesheets": {
+            "macroAnalyzerTabsSheet": ["resources/icons/*.png"]
+        }
+    }
 }
