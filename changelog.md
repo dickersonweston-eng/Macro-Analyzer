@@ -1,3 +1,7 @@
+# v1.4.1
+- Replaced Analysis Tab's UI
+- Fixed Animations
+
 # v1.4.0
 - Added Analysis Tab With Input Density
 - Redesigned UI

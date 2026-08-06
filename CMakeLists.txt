@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-project(kreongd.macroanalyzer VERSION 1.4.0)
+project(kreongd.macroanalyzer VERSION 1.4.1)
 if ("${CMAKE_SYSTEM_NAME}" STREQUAL "ios" OR IOS)
     set(CMAKE_OSX_ARCHITECTURES "arm64")
 else()

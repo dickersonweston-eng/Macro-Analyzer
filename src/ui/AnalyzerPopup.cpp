@@ -27,8 +27,15 @@ void AnalyzerPopup::showError(std::string const& message) {
 void AnalyzerPopup::switchTab(bool showAnalysis) {
     m_statsTab->setVisible(!showAnalysis);
     m_analysisTab->setVisible(showAnalysis);
-    m_statsTabBtn->setOpacity(showAnalysis ? 120 : 255);
-    m_analysisTabBtn->setOpacity(showAnalysis ? 255 : 120);
+    m_statsTabBtn->setOpacity(showAnalysis ? 160 : 255);
+    m_analysisTabBtn->setOpacity(showAnalysis ? 255 : 160);
+    if (m_hasReplay) {
+        if (showAnalysis) {
+            m_analysisTab->populate(m_currentReplay);
+        } else {
+            m_statsTab->populate(m_currentReplay);
+        }
+    }
 }
 
 void AnalyzerPopup::onSwitchTab(CCObject* sender) {
@@ -86,6 +93,7 @@ bool AnalyzerPopup::init(float width, float height) {
 
     auto createSidebarRow = [](std::string const& icon, std::string const& text) -> CCNode* {
         auto row = CCNodeRGBA::create();
+        row->setCascadeOpacityEnabled(true);
         row->setContentSize({90.f, 34.f});
 
         auto panel = NineSlice::create("GJ_square01.png");
@@ -175,46 +183,37 @@ void AnalyzerPopup::onOpenFile(CCObject* sender) {
         std::move(future),
         [self = Ref<AnalyzerPopup>(this)](file::PickResult result) {
             if (!result) {
-                log::error("File pick failed: {}", result.unwrapErr());
+                log::error("File Pick Failed: {}", result.unwrapErr());
                 return;
             }
             auto path = result.unwrap();
             if (!path.has_value()) {
-                log::info("File pick cancelled");
+                log::info("File Pick Cancelled");
                 return;
             }
             log::info("Picked File: {}", path.value().string());
-            self->showLoading();
 
-            self->runAction(CCSequence::create(
-                CCDelayTime::create(0.4f),
-                CallFuncExt::create([self, filePath = path.value()]() {
-                    auto ext = filePath.extension().string();
-                    Result<Replay> parseResult = [&]() {
-                        if (ext == ".json") return JsonParser::parse(filePath);
-                        if (ext == ".gdr") return GdrParser::parse(filePath);
-                        return Gdr2Parser::parse(filePath);
-                    }();
-                    if (!parseResult) {
-                        log::error("Parse Failed: {}", parseResult.unwrapErr());
-                        self->showError("Failed To Parse File");
-                        return;
-                    }
-                    auto replay = parseResult.unwrap();
-                    log::info("Parsed Replay: Author={}, Level={}, Frames={}, Duration={}ms",
-                        replay.author, replay.levelName, replay.frames.size(), replay.duration);
-                        self->runAction(CCSequence::create(
-                            CCDelayTime::create(2.5f),
-                            CallFuncExt::create([self, replay]() {
-                                self->m_statsTab->populate(replay);
-                                self->m_analysisTab->populate(replay);
-                                self->hideLoading();
-                            }),
-                        nullptr
-                    ));
-                }),
-                nullptr
-            ));
+            auto filePath = path.value();
+            auto ext = filePath.extension().string();
+            Result<Replay> parseResult = [&]() {
+                if (ext == ".json") return JsonParser::parse(filePath);
+                if (ext == ".gdr") return GdrParser::parse(filePath);
+                return Gdr2Parser::parse(filePath);
+            }();
+            if (!parseResult) {
+                log::error("Parse Failed: {}", parseResult.unwrapErr());
+                self->showError("Failed To Parse File");
+                return;
+            }
+            auto replay = parseResult.unwrap();
+            log::info("Parsed Replay: Author={}, Level={}, Frames={}, Duration={}ms",
+                replay.author, replay.levelName, replay.frames.size(), replay.duration);
+
+            self->m_currentReplay = replay;
+            self->m_hasReplay = true;
+            self->m_statsTab->populate(replay);
+            self->m_analysisTab->populate(replay);
+            self->switchTab(false);
         }
     );
 }

@@ -18,6 +18,8 @@ protected:
     CCMenuItemSpriteExtra* m_analysisTabBtn = nullptr;
     CCNode* m_loadingContainer = nullptr;
     CCLabelBMFont* m_errorLabel = nullptr;
+    Replay m_currentReplay;
+    bool m_hasReplay = false;
     void showLoading();
     void hideLoading();
     void showError(std::string const& message);
