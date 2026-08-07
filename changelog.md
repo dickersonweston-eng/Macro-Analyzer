@@ -1,3 +1,7 @@
+# v1.4.2
+- Added Base For Player Tab
+- Fixed Some Alignment Issues0
+
 # v1.4.1
 - Replaced Analysis Tab's UI
 - Fixed Animations

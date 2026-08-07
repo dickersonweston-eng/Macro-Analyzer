@@ -8,38 +8,44 @@ void AnalyzerPopup::showLoading() {
     m_errorLabel->setVisible(false);
     m_statsTab->setVisible(false);
     m_analysisTab->setVisible(false);
+    m_playerTab->setVisible(false);
     m_loadingContainer->setVisible(true);
 }
 
 void AnalyzerPopup::hideLoading() {
     m_loadingContainer->setVisible(false);
-    switchTab(false);
+    switchTab(AnalyzerTab::Stats);
 }
 
 void AnalyzerPopup::showError(std::string const& message) {
     m_statsTab->setVisible(false);
     m_analysisTab->setVisible(false);
+    m_playerTab->setVisible(false);
     m_loadingContainer->setVisible(false);
     m_errorLabel->setString(message.c_str());
     m_errorLabel->setVisible(true);
 }
 
-void AnalyzerPopup::switchTab(bool showAnalysis) {
-    m_statsTab->setVisible(!showAnalysis);
-    m_analysisTab->setVisible(showAnalysis);
-    m_statsTabBtn->setOpacity(showAnalysis ? 160 : 255);
-    m_analysisTabBtn->setOpacity(showAnalysis ? 255 : 160);
+void AnalyzerPopup::switchTab(AnalyzerTab tab) {
+    m_statsTab->setVisible(tab == AnalyzerTab::Stats);
+    m_analysisTab->setVisible(tab == AnalyzerTab::Analysis);
+    m_playerTab->setVisible(tab == AnalyzerTab::Player);
+
+    m_statsTabBtn->setOpacity(tab == AnalyzerTab::Stats ? 255 : 160);
+    m_analysisTabBtn->setOpacity(tab == AnalyzerTab::Analysis ? 255 : 160);
+    m_playerTabBtn->setOpacity(tab == AnalyzerTab::Player ? 255 : 160);
+
     if (m_hasReplay) {
-        if (showAnalysis) {
-            m_analysisTab->populate(m_currentReplay);
-        } else {
-            m_statsTab->populate(m_currentReplay);
-        }
+        if (tab == AnalyzerTab::Stats) m_statsTab->populate(m_currentReplay);
+        else if (tab == AnalyzerTab::Analysis) m_analysisTab->populate(m_currentReplay);
+        else if (tab == AnalyzerTab::Player) m_playerTab->populate(m_currentReplay);
     }
 }
 
 void AnalyzerPopup::onSwitchTab(CCObject* sender) {
-    switchTab(sender == m_analysisTabBtn);
+    if (sender == m_analysisTabBtn) switchTab(AnalyzerTab::Analysis);
+    else if (sender == m_playerTabBtn) switchTab(AnalyzerTab::Player);
+    else switchTab(AnalyzerTab::Stats);
 }
 
 bool AnalyzerPopup::init(float width, float height) {
@@ -71,6 +77,7 @@ bool AnalyzerPopup::init(float width, float height) {
     float sidebarWidth = 100.f;
     float contentWidth = m_mainLayer->getContentSize().width - sidebarWidth;
     float contentHeight = m_mainLayer->getContentSize().height;
+    m_title->setPosition(sidebarWidth + contentWidth / 2.f, m_title->getPositionY());
 
     btn->setPosition({m_mainLayer->getContentSize().width - 20.f, contentHeight - 20.f});
 
@@ -82,6 +89,11 @@ bool AnalyzerPopup::init(float width, float height) {
     m_analysisTab->setPosition(sidebarWidth, 0.f);
     m_analysisTab->setVisible(false);
     m_mainLayer->addChild(m_analysisTab);
+
+    m_playerTab = PlayerTab::create(contentWidth, contentHeight);
+    m_playerTab->setPosition(sidebarWidth, 0.f);
+    m_playerTab->setVisible(false);
+    m_mainLayer->addChild(m_playerTab);
 
     auto sidebarBg = NineSlice::create("GJ_square01.png");
     sidebarBg->setContentSize({sidebarWidth, contentHeight});
@@ -132,9 +144,16 @@ bool AnalyzerPopup::init(float width, float height) {
     m_analysisTabBtn->setPosition(50.f, contentHeight - 82.f);
     sidebarMenu->addChild(m_analysisTabBtn);
 
+    m_playerTabBtn = CCMenuItemSpriteExtra::create(
+        createSidebarRow("tab_player.png"_spr, "Player"),
+        this, menu_selector(AnalyzerPopup::onSwitchTab)
+    );
+    m_playerTabBtn->setPosition(50.f, contentHeight - 124.f);
+    sidebarMenu->addChild(m_playerTabBtn);
+
     m_mainLayer->addChild(sidebarMenu);
 
-    switchTab(false);
+    switchTab(AnalyzerTab::Stats);
 
     m_loadingContainer = CCNode::create();
     m_loadingContainer->setPosition(m_mainLayer->getContentSize().width / 2.f, m_mainLayer->getContentSize().height / 2.f);
@@ -213,7 +232,8 @@ void AnalyzerPopup::onOpenFile(CCObject* sender) {
             self->m_hasReplay = true;
             self->m_statsTab->populate(replay);
             self->m_analysisTab->populate(replay);
-            self->switchTab(false);
+            self->m_playerTab->populate(replay);
+            self->switchTab(AnalyzerTab::Stats);
         }
     );
 }

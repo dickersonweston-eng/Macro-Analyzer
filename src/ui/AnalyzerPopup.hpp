@@ -5,8 +5,13 @@
 #include "../Replay.hpp"
 #include "tabs/Stats/StatsTab.hpp"
 #include "tabs/Analysis/AnalysisTab.hpp"
+#include "tabs/Player/PlayerTab.hpp"
 
 using namespace geode::prelude;
+
+enum class AnalyzerTab {
+    Stats, Analysis, Player
+};
 
 class AnalyzerPopup : public Popup {
 protected:
@@ -14,8 +19,10 @@ protected:
     arc::TaskHandle<void> m_pickHandle;
     StatsTab* m_statsTab = nullptr;
     AnalysisTab* m_analysisTab = nullptr;
+    PlayerTab* m_playerTab = nullptr;
     CCMenuItemSpriteExtra* m_statsTabBtn = nullptr;
     CCMenuItemSpriteExtra* m_analysisTabBtn = nullptr;
+    CCMenuItemSpriteExtra* m_playerTabBtn = nullptr;
     CCNode* m_loadingContainer = nullptr;
     CCLabelBMFont* m_errorLabel = nullptr;
     Replay m_currentReplay;
@@ -23,7 +30,7 @@ protected:
     void showLoading();
     void hideLoading();
     void showError(std::string const& message);
-    void switchTab(bool showAnalysis);
+    void switchTab(AnalyzerTab tab);
     void onSwitchTab(CCObject* sender);
 
 public:
